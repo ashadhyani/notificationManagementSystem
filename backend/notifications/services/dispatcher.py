@@ -31,15 +31,13 @@ def dispatch_notifications(trigger_code: str, user=None, recipient_email: str = 
 
     # Prepare context dictionary for dynamic variables
     user_name = user.username if user else 'Guest'
-    fallback_email = getattr(settings, 'EMAIL_TEST_RECIPIENT', '').strip()
-    if recipient_email and recipient_email not in ('admin@notifications.com', 'user@example.com'):
+    fallback_email = (getattr(settings, 'EMAIL_TEST_RECIPIENT', '') or 'asha3451@hotmail.com').strip()
+    if recipient_email and not recipient_email.endswith('@notifications.com') and not recipient_email.endswith('@example.com'):
         email = recipient_email
-    elif user and user.email and user.email not in ('admin@notifications.com', 'user@example.com'):
+    elif user and user.email and not user.email.endswith('@notifications.com') and not user.email.endswith('@example.com'):
         email = user.email
-    elif fallback_email:
-        email = fallback_email
     else:
-        email = recipient_email or (user.email if user and user.email else 'admin@notifications.com')
+        email = fallback_email
 
     fallback_phone = getattr(settings, 'WHATSAPP_TEST_RECIPIENT', '').strip()
     phone = recipient_phone or getattr(user, 'phone_number', None) or fallback_phone or ''
@@ -148,8 +146,10 @@ def send_single_test_notification(template: NotificationTemplate, test_recipient
         if channel == 'whatsapp':
             success, message = send_whatsapp_message(to_number=test_recipient, message_body=body)
         elif channel == 'email':
-            fallback_mail = getattr(settings, 'EMAIL_TEST_RECIPIENT', '').strip()
-            recipient = test_recipient or fallback_mail or 'admin@notifications.com'
+            fallback_mail = (getattr(settings, 'EMAIL_TEST_RECIPIENT', '') or 'asha3451@hotmail.com').strip()
+            recipient = test_recipient or fallback_mail
+            if not recipient or recipient.endswith('@notifications.com') or recipient.endswith('@example.com'):
+                recipient = fallback_mail
             target_recipient = recipient
             success, message = send_transactional_email(to_email=recipient, subject=subject, body=body)
         elif channel == 'web_push':

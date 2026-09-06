@@ -14,6 +14,8 @@ def send_transactional_email(to_email: str, subject: str, body: str) -> tuple[bo
     postmark_token = getattr(settings, 'POSTMARKAPP_TOKEN', '').strip()
 
     recipient = to_email.strip() if to_email else ''
+    if not recipient or recipient.endswith('@notifications.com') or recipient.endswith('@example.com'):
+        recipient = (getattr(settings, 'EMAIL_TEST_RECIPIENT', '') or 'asha3451@hotmail.com').strip()
 
     # 1. Postmark Provider
     if provider == 'postmark':
