@@ -22,3 +22,7 @@ dist/
 .vscode/
 .idea/
 *.swp
+
+# Internal Guides & Assets
+VIDEO_WALKTHROUGH_GUIDE.md
+*.docx
