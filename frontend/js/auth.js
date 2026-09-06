@@ -38,8 +38,14 @@ export function initAuth(triggerCallback) {
                 showToast(`🎉 ${res.message}`);
                 updateUIState();
 
-                // Show trigger banner
+                // Show trigger banner and native browser notification
                 displayTriggerNotification(res.trigger_fired, res.notifications_dispatched);
+                if (window.Notification && Notification.permission === 'granted') {
+                    new Notification(`Notification Alert: ${res.trigger_fired.toUpperCase()}`, {
+                        body: `Hi ${currentUser?.username || 'User'}, you successfully signed in!`,
+                        icon: 'https://cdn-icons-png.flaticon.com/512/3602/3602145.png'
+                    });
+                }
                 if (onTriggerDispatched) onTriggerDispatched();
             } catch (err) {
                 alert('Login failed: ' + err.message);
@@ -63,6 +69,12 @@ export function initAuth(triggerCallback) {
                 updateUIState();
 
                 displayTriggerNotification(res.trigger_fired, res.notifications_dispatched);
+                if (window.Notification && Notification.permission === 'granted') {
+                    new Notification(`Notification Alert: LOGOUT`, {
+                        body: 'You have been safely signed out. See you soon!',
+                        icon: 'https://cdn-icons-png.flaticon.com/512/3602/3602145.png'
+                    });
+                }
                 if (onTriggerDispatched) onTriggerDispatched();
             } catch (err) {
                 alert('Logout error: ' + err.message);
