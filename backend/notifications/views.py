@@ -1,3 +1,4 @@
+import logging
 from django.conf import settings
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -6,6 +7,8 @@ from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+
+logger = logging.getLogger(__name__)
 
 from .models import Trigger, NotificationTemplate, NotificationLog, WebPushSubscription
 from .serializers import (
@@ -65,12 +68,16 @@ def login_view(request):
 
     # Synchronously dispatch notifications for 'login' trigger
     phone = request.data.get('phone')
-    dispatch_results = dispatch_notifications(
-        trigger_code='login',
-        user=user,
-        recipient_email=user.email,
-        recipient_phone=phone,
-    )
+    dispatch_results = []
+    try:
+        dispatch_results = dispatch_notifications(
+            trigger_code='login',
+            user=user,
+            recipient_email=user.email,
+            recipient_phone=phone,
+        )
+    except Exception as exc:
+        logger.exception("Error during login notification dispatch: %s", exc)
 
     return Response({
         'message': f"Welcome back, {user.username}! Login trigger executed.",
@@ -90,11 +97,15 @@ def logout_view(request):
     user_data = UserSerializer(user).data if user else None
 
     # Synchronously dispatch notifications for 'logout' trigger
-    dispatch_results = dispatch_notifications(
-        trigger_code='logout',
-        user=user,
-        recipient_email=user.email if user else None,
-    )
+    dispatch_results = []
+    try:
+        dispatch_results = dispatch_notifications(
+            trigger_code='logout',
+            user=user,
+            recipient_email=user.email if user else None,
+        )
+    except Exception as exc:
+        logger.exception("Error during logout notification dispatch: %s", exc)
 
     if request.user.is_authenticated:
         logout(request)

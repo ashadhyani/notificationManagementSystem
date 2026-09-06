@@ -1,5 +1,6 @@
 import datetime
 import logging
+from django.conf import settings
 from django.utils import timezone
 from ..models import Trigger, NotificationTemplate, NotificationLog, WebPushSubscription
 from .whatsapp import send_whatsapp_message
