@@ -158,7 +158,10 @@ def matrix_view(request):
 def toggle_template_view(request, template_id):
     """Toggles a template cell ON or OFF."""
     template = get_object_or_404(NotificationTemplate, id=template_id)
-    template.is_enabled = not template.is_enabled
+    if 'is_enabled' in request.data:
+        template.is_enabled = bool(request.data['is_enabled'])
+    else:
+        template.is_enabled = not template.is_enabled
     template.save()
     return Response({
         'message': f"{template.trigger.name} - {template.get_channel_display()} is now {'ON' if template.is_enabled else 'OFF'}.",
@@ -189,8 +192,15 @@ def update_template_view(request, template_id):
 def test_send_template_view(request, template_id):
     """Sends an immediate test notification for a specific cell."""
     template = get_object_or_404(NotificationTemplate, id=template_id)
-    recipient = request.data.get('recipient')
+    if not template.is_enabled:
+        return Response({
+            'success': False,
+            'channel': template.channel,
+            'trigger': template.trigger.name,
+            'message': f"Cannot send: {template.trigger.name} ({template.get_channel_display()}) is turned OFF. Please toggle it ON first.",
+        }, status=status.HTTP_400_BAD_REQUEST)
 
+    recipient = request.data.get('recipient')
     success, message = send_single_test_notification(template, test_recipient=recipient)
     return Response({
         'success': success,

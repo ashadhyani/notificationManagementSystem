@@ -82,9 +82,11 @@ export const api = {
         return this.request('/matrix/');
     },
 
-    async toggleTemplate(templateId) {
+    async toggleTemplate(templateId, isEnabled = null) {
+        const body = isEnabled !== null ? { is_enabled: isEnabled } : {};
         return this.request(`/templates/${templateId}/toggle/`, {
             method: 'PATCH',
+            body: body,
         });
     },
 

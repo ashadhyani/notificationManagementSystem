@@ -68,7 +68,7 @@ export async function renderMatrix(containerId, onLogsRefresh) {
                                 <button class="btn btn-secondary btn-sm btn-edit-cell" data-template='${JSON.stringify(template)}'>
                                     ✏️ Edit
                                 </button>
-                                <button class="btn btn-secondary btn-sm btn-test-cell" data-template='${JSON.stringify(template)}'>
+                                <button class="btn btn-secondary btn-sm btn-test-cell" data-template='${JSON.stringify(template)}' ${isEnabled ? '' : 'disabled style="opacity: 0.5; cursor: not-allowed;" title="Channel is toggled OFF"'}>
                                     🚀 Test Send
                                 </button>
                             </div>
@@ -92,14 +92,34 @@ export async function renderMatrix(containerId, onLogsRefresh) {
             input.addEventListener('change', async (e) => {
                 const templateId = e.target.getAttribute('data-template-id');
                 const cell = document.getElementById(`cell-${templateId}`);
+                const isChecked = e.target.checked;
                 try {
-                    const res = await api.toggleTemplate(templateId);
+                    const res = await api.toggleTemplate(templateId, isChecked);
                     const nowEnabled = res.template.is_enabled;
+                    const testBtn = cell ? cell.querySelector('.btn-test-cell') : null;
+                    const editBtn = cell ? cell.querySelector('.btn-edit-cell') : null;
+
                     if (nowEnabled) {
                         cell.classList.remove('disabled');
+                        if (testBtn) {
+                            testBtn.removeAttribute('disabled');
+                            testBtn.style.opacity = '1';
+                            testBtn.style.cursor = 'pointer';
+                            testBtn.title = '';
+                        }
                     } else {
                         cell.classList.add('disabled');
+                        if (testBtn) {
+                            testBtn.setAttribute('disabled', 'true');
+                            testBtn.style.opacity = '0.5';
+                            testBtn.style.cursor = 'not-allowed';
+                            testBtn.title = 'Channel is toggled OFF';
+                        }
                     }
+
+                    if (testBtn) testBtn.setAttribute('data-template', JSON.stringify(res.template));
+                    if (editBtn) editBtn.setAttribute('data-template', JSON.stringify(res.template));
+
                     showToast(res.message);
                 } catch (err) {
                     e.target.checked = !e.target.checked;
@@ -120,6 +140,10 @@ export async function renderMatrix(containerId, onLogsRefresh) {
         container.querySelectorAll('.btn-test-cell').forEach(btn => {
             btn.addEventListener('click', () => {
                 const template = JSON.parse(btn.getAttribute('data-template'));
+                if (template.is_enabled === false) {
+                    alert(`Cannot test send: ${template.trigger_name} (${template.channel.toUpperCase()}) is currently toggled OFF. Please switch the toggle ON first.`);
+                    return;
+                }
                 openTestSendModal(template);
             });
         });
