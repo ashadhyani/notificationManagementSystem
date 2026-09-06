@@ -89,7 +89,19 @@ export function initModals(matrixCallback, logsCallback) {
             try {
                 const res = await api.testSendTemplate(activeTemplate.id, recipient);
                 resultBox.className = 'alert-box success';
-                resultBox.textContent = `🚀 Success: ${res.message}`;
+                
+                let cleanMsg = res.message || '';
+                if (cleanMsg.includes('wamid.')) {
+                    const parts = cleanMsg.split('wamid.');
+                    const prefix = parts[0].replace(/:$/, '').trim();
+                    const wamid = 'wamid.' + parts[1].trim();
+                    resultBox.innerHTML = `
+                        <div style="font-weight: 600; margin-bottom: 4px;">🚀 Success: ${prefix}</div>
+                        <div style="font-size: 11px; opacity: 0.85; font-family: monospace; word-break: break-all; background: rgba(0,0,0,0.25); padding: 5px 8px; border-radius: 6px; line-height: 1.4;">Tracking ID: ${wamid}</div>
+                    `;
+                } else {
+                    resultBox.innerHTML = `<div style="font-weight: 600;">🚀 Success: ${cleanMsg}</div>`;
+                }
                 resultBox.style.display = 'block';
 
                 showToast(`Test sent via ${activeTemplate.channel}!`);

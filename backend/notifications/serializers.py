@@ -29,8 +29,15 @@ class WebPushSubscriptionSerializer(serializers.ModelSerializer):
         fields = ['id', 'endpoint', 'p256dh', 'auth', 'created_at']
 
 class NotificationLogSerializer(serializers.ModelSerializer):
-    sent_at_formatted = serializers.DateTimeField(source='sent_at', format="%Y-%m-%d %H:%M:%S", read_only=True)
+    sent_at_formatted = serializers.SerializerMethodField()
 
     class Meta:
         model = NotificationLog
         fields = ['id', 'trigger_code', 'channel', 'recipient', 'status', 'error_message', 'sent_at_formatted']
+
+    def get_sent_at_formatted(self, obj):
+        from django.utils import timezone
+        if not obj.sent_at:
+            return ""
+        local_dt = timezone.localtime(obj.sent_at)
+        return local_dt.strftime("%Y-%m-%d %I:%M:%S %p")
