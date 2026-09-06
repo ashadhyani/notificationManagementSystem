@@ -180,10 +180,14 @@ WHATSAPP_ACCESS_TOKEN = os.getenv('WHATSAPP_ACCESS_TOKEN', '')
 PHONE_NUMBER_ID = os.getenv('PHONE_NUMBER_ID', '')
 WHATSAPP_TEST_RECIPIENT = os.getenv('WHATSAPP_TEST_RECIPIENT', '')
 
-EMAIL_PROVIDER = os.getenv('EMAIL_PROVIDER', 'resend').lower()
+EMAIL_PROVIDER = os.getenv('EMAIL_PROVIDER', 'postmark' if os.getenv('POSTMARKAPP_TOKEN') else 'resend').lower()
 EMAIL_API_KEY = os.getenv('EMAIL_API_KEY', '')
 POSTMARKAPP_TOKEN = os.getenv('POSTMARKAPP_TOKEN', '')
-DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'onboarding@resend.dev')
+POSTMARK_FROM_EMAIL = os.getenv('POSTMARK_FROM_EMAIL', '')
+DEFAULT_FROM_EMAIL = os.getenv('POSTMARK_FROM_EMAIL', os.getenv('DEFAULT_FROM_EMAIL', 'onboarding@resend.dev'))
+
+ONESIGNAL_APP_ID = os.getenv('ONESIGNAL_APP_ID', '')
+ONESIGNAL_REST_API_KEY = os.getenv('ONESIGNAL_REST_API_KEY', '')
 
 VAPID_PUBLIC_KEY = os.getenv('VAPID_PUBLIC_KEY', 'BEwCwy5SLgW13NBVbA8YzA7yNZ9yfDEv42cjJRk5Ly2auIMKAEQL2QsV1Ercg1c7qaZxlSbwJRox3UazxSDa2Wo')
 VAPID_PRIVATE_KEY = os.getenv('VAPID_PRIVATE_KEY', 'wzbAEiujSaFJepO-19ycbxYdPvZjab_iJa5zyu4jVDY')

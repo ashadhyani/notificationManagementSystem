@@ -22,6 +22,33 @@ def send_web_push_notification(subscription_info: dict, title: str, body: str) -
         "sub": f"mailto:{getattr(settings, 'VAPID_ADMIN_EMAIL', 'admin@notifications.com')}"
     }
 
+    onesignal_app_id = getattr(settings, 'ONESIGNAL_APP_ID', '').strip()
+    onesignal_key = getattr(settings, 'ONESIGNAL_REST_API_KEY', '').strip()
+
+    # 1. Dispatch via OneSignal if credentials are configured
+    if onesignal_app_id and onesignal_key:
+        import requests
+        url = "https://onesignal.com/api/v1/notifications"
+        headers = {
+            "Authorization": f"Basic {onesignal_key}",
+            "Content-Type": "application/json",
+        }
+        payload_data = {
+            "app_id": onesignal_app_id,
+            "included_segments": ["Subscribed Users"],
+            "headings": {"en": title or "Notification"},
+            "contents": {"en": body or "New Notification Alert"},
+        }
+        try:
+            resp = requests.post(url, json=payload_data, headers=headers, timeout=10)
+            if resp.status_code in (200, 201):
+                return True, f"Delivered via OneSignal: {resp.json().get('id', 'OK')}"
+            else:
+                return False, f"OneSignal Error {resp.status_code}: {resp.text}"
+        except Exception as e:
+            return False, f"OneSignal send error: {str(e)}"
+
+    # 2. Dispatch via native browser WebPush (VAPID)
     payload = json.dumps({
         "title": title or "Notification",
         "body": body,
