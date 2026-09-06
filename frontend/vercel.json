@@ -1,9 +1,21 @@
 {
   "version": 2,
   "cleanUrls": true,
-  "routes": [
-    { "src": "/sw.js", "dest": "/sw.js", "headers": { "Service-Worker-Allowed": "/" } },
-    { "src": "/api/(.*)", "dest": "https://notificationmanagementsystem.onrender.com/api/$1" },
-    { "src": "/(.*)", "dest": "/$1" }
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://notificationmanagementsystem.onrender.com/api/:path*"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Service-Worker-Allowed",
+          "value": "/"
+        }
+      ]
+    }
   ]
 }
