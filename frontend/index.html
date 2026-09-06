@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notification Management System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Navigation Header -->
+        <header class="navbar">
+            <div class="brand">
+                <div class="brand-icon">🔔</div>
+                <div class="brand-info">
+                    <h1>Notification Management System</h1>
+                    <p>Single Screen Matrix • WhatsApp • Transactional Email • Web Push</p>
+                </div>
+            </div>
+
+            <div class="nav-actions">
+                <!-- Browser Web Push Opt-in Button -->
+                <button id="btn-enable-push" class="btn-push" title="Subscribe your browser to real native push notifications">
+                    🔔 Enable Web Push
+                </button>
+
+                <!-- Current User Status -->
+                <div id="user-badge" class="user-badge">
+                    <span class="user-dot" style="background: #9CA3AF; box-shadow: none;"></span>
+                    <span>Checking session...</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Live Trigger Banner -->
+        <div id="live-trigger-banner" style="display: none;"></div>
+
+        <!-- Section 1: Real User Authentication (Fires Real Website Triggers) -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-title">
+                    <h2>Website User Authentication</h2>
+                    <p>Real user login and logout actions fire the backend triggers synchronously.</p>
+                </div>
+            </div>
+
+            <!-- Forms when logged out -->
+            <div id="user-auth-forms" class="auth-panel">
+                <!-- Sign In Card (Fires 'Login' Trigger) -->
+                <div class="auth-card">
+                    <div class="auth-card-header">
+                        <div class="auth-card-title">
+                            <span>🔑</span>
+                            <span>Sign In</span>
+                        </div>
+                        <span class="badge-trigger">Fires "Login" Trigger</span>
+                    </div>
+
+                    <form id="form-user-login">
+                        <div class="form-group">
+                            <label class="form-label" for="login-username">Username</label>
+                            <input type="text" id="login-username" class="form-input" placeholder="e.g. admin or john" value="admin" required autocomplete="username">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="login-password">Password</label>
+                            <input type="password" id="login-password" class="form-input" placeholder="••••••••" value="admin12345" required autocomplete="current-password">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="login-phone">Phone Number (Optional for WhatsApp sandbox)</label>
+                            <input type="tel" id="login-phone" class="form-input" placeholder="+919876543210 (Test Recipient)">
+                        </div>
+
+                        <div class="auth-card-actions">
+                            <button type="submit" id="btn-submit-login" class="btn btn-primary" style="width: 100%;">
+                                Sign In (Fires Login Trigger)
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Create Account Card -->
+                <div class="auth-card">
+                    <div class="auth-card-header">
+                        <div class="auth-card-title">
+                            <span>👤</span>
+                            <span>Register New User</span>
+                        </div>
+                        <span class="badge-trigger" style="background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); color: var(--text-secondary);">New Account</span>
+                    </div>
+
+                    <form id="form-user-register">
+                        <div class="form-group">
+                            <label class="form-label" for="reg-username">Username</label>
+                            <input type="text" id="reg-username" class="form-input" placeholder="e.g. john_doe" required autocomplete="username">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="reg-email">Email Address</label>
+                            <input type="email" id="reg-email" class="form-input" placeholder="user@example.com" required autocomplete="email">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="reg-password">Password</label>
+                            <input type="password" id="reg-password" class="form-input" placeholder="Minimum 6 characters" required autocomplete="new-password">
+                        </div>
+
+                        <div class="auth-card-actions">
+                            <button type="submit" id="btn-submit-reg" class="btn btn-secondary" style="width: 100%;">
+                                Create User Account
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- View when logged in -->
+            <div id="user-session-view" style="display: none; margin-bottom: 36px;">
+                <div class="auth-card" style="display: flex; justify-content: space-between; align-items: center; padding: 20px 24px;">
+                    <div>
+                        <div style="font-size: 16px; font-weight: 700;">Active User: <span id="active-user-name" style="color: var(--primary);">User</span></div>
+                        <div style="font-size: 13px; color: var(--text-secondary); margin-top: 4px;">Clicking Sign Out will immediately execute the <strong>Logout</strong> trigger across all enabled channels.</div>
+                    </div>
+                    <button id="btn-user-logout" class="btn btn-danger">
+                        Sign Out (Fires Logout Trigger)
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section 2: Admin Notification Settings Matrix Table -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-title">
+                    <h2>Notification Settings (Admin Matrix Screen)</h2>
+                    <p>Manage, customize, toggle, and test send all notification templates from one unified table.</p>
+                </div>
+                <button id="btn-refresh-matrix" class="btn btn-secondary btn-sm">
+                    🔄 Refresh Matrix
+                </button>
+            </div>
+
+            <!-- Matrix Table Container -->
+            <div id="matrix-container" class="matrix-container">
+                <!-- Dynamically rendered by matrix.js -->
+            </div>
+        </section>
+
+        <!-- Section 3: Notification Delivery Logs -->
+        <section class="section">
+            <div class="section-header">
+                <div class="section-title">
+                    <h2>Live Notification Delivery Logs</h2>
+                    <p>Audit history of recent automated triggers and direct test dispatches.</p>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <button id="btn-refresh-logs" class="btn btn-secondary btn-sm">
+                        🔄 Refresh Logs
+                    </button>
+                    <button id="btn-clear-logs" class="btn btn-danger btn-sm">
+                        🗑️ Clear Logs
+                    </button>
+                </div>
+            </div>
+
+            <div class="logs-container">
+                <table class="logs-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 14%;">Status</th>
+                            <th style="width: 18%;">Trigger Event</th>
+                            <th style="width: 16%;">Channel</th>
+                            <th>Target Recipient</th>
+                            <th style="width: 22%;">Timestamp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logs-tbody">
+                        <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">Loading logs...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal 1: Edit Template -->
+    <div id="modal-edit" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="edit-modal-title">Edit Template</h3>
+                <button id="btn-close-edit" class="modal-close">&times;</button>
+            </div>
+
+            <form id="form-edit-template">
+                <div class="form-group">
+                    <label class="form-label" for="edit-subject">Subject / Title</label>
+                    <input type="text" id="edit-subject" class="form-input" placeholder="Notification Subject Line">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Insert Dynamic Tags</label>
+                    <div class="tag-buttons">
+                        <button type="button" class="tag-btn" data-tag="{{user_name}}">+ {{user_name}}</button>
+                        <button type="button" class="tag-btn" data-tag="{{email}}">+ {{email}}</button>
+                        <button type="button" class="tag-btn" data-tag="{{time}}">+ {{time}}</button>
+                        <button type="button" class="tag-btn" data-tag="{{trigger}}">+ {{trigger}}</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="edit-body">Message Content (Body)</label>
+                    <textarea id="edit-body" class="form-input" placeholder="Type notification message here..." required></textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                    <button type="submit" id="btn-save-template" class="btn btn-primary">
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal 2: Test Send -->
+    <div id="modal-test-send" class="modal-overlay">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3 id="test-modal-title">Test Send Notification</h3>
+                <button id="btn-close-test" class="modal-close">&times;</button>
+            </div>
+
+            <div id="test-result-box" class="alert-box"></div>
+
+            <form id="form-test-send">
+                <div class="form-group">
+                    <label class="form-label" id="test-recipient-label" for="test-recipient">Recipient Target</label>
+                    <input type="text" id="test-recipient" class="form-input" placeholder="Enter recipient detail...">
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px;">
+                    <button type="submit" id="btn-execute-test" class="btn btn-primary">
+                        Send Test Notification
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Frontend Main Application Entry -->
+    <script type="module">
+        import { api } from '/js/api.js';
+        import { renderMatrix } from '/js/matrix.js';
+        import { initAuth } from '/js/auth.js';
+        import { initWebPush } from '/js/webpush.js';
+        import { initModals } from '/js/modals.js';
+
+        async function loadLogs() {
+            const tbody = document.getElementById('logs-tbody');
+            if (!tbody) return;
+            try {
+                const logs = await api.getLogs();
+                if (!logs || logs.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 20px;">No logs recorded yet.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = logs.map(log => `
+                    <tr>
+                        <td><span class="status-pill ${log.status}">${log.status}</span></td>
+                        <td><strong>${escapeHtml(log.trigger_code)}</strong></td>
+                        <td><span style="text-transform: capitalize;">${escapeHtml(log.channel)}</span></td>
+                        <td style="font-family: monospace; font-size: 12px; color: var(--text-secondary);">${escapeHtml(log.recipient)}</td>
+                        <td style="color: var(--text-muted); font-size: 12px;">${log.sent_at_formatted || 'Recently'}</td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="5" style="color: var(--danger); text-align: center; padding: 20px;">Error loading logs: ${err.message}</td></tr>`;
+            }
+        }
+
+        function escapeHtml(text) {
+            if (!text) return '';
+            const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        // Initialize Application
+        document.addEventListener('DOMContentLoaded', () => {
+            initModals(() => renderMatrix('matrix-container', loadLogs), loadLogs);
+            initAuth(loadLogs);
+            initWebPush();
+            renderMatrix('matrix-container', loadLogs);
+            loadLogs();
+
+            document.getElementById('btn-refresh-matrix')?.addEventListener('click', () => {
+                renderMatrix('matrix-container', loadLogs);
+            });
+
+            document.getElementById('btn-refresh-logs')?.addEventListener('click', () => {
+                loadLogs();
+            });
+
+            document.getElementById('btn-clear-logs')?.addEventListener('click', async () => {
+                if (confirm('Are you sure you want to clear all notification delivery logs?')) {
+                    try {
+                        await api.clearLogs();
+                        loadLogs();
+                    } catch (err) {
+                        alert('Failed to clear logs: ' + err.message);
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
