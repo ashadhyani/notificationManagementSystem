@@ -185,6 +185,6 @@ EMAIL_API_KEY = os.getenv('EMAIL_API_KEY', '')
 POSTMARKAPP_TOKEN = os.getenv('POSTMARKAPP_TOKEN', '')
 DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'onboarding@resend.dev')
 
-VAPID_PUBLIC_KEY = os.getenv('VAPID_PUBLIC_KEY', 'BDq7hZ7t0bJp3eA4Vl0_T1z6K2p7v4y1n6L7b2x5q8e3t7v1a0b4c7d9e1f3a5c8')
-VAPID_PRIVATE_KEY = os.getenv('VAPID_PRIVATE_KEY', 'x1y2z3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2')
+VAPID_PUBLIC_KEY = os.getenv('VAPID_PUBLIC_KEY', 'BEwCwy5SLgW13NBVbA8YzA7yNZ9yfDEv42cjJRk5Ly2auIMKAEQL2QsV1Ercg1c7qaZxlSbwJRox3UazxSDa2Wo')
+VAPID_PRIVATE_KEY = os.getenv('VAPID_PRIVATE_KEY', 'wzbAEiujSaFJepO-19ycbxYdPvZjab_iJa5zyu4jVDY')
 VAPID_ADMIN_EMAIL = os.getenv('VAPID_ADMIN_EMAIL', 'admin@notifications.com')
