@@ -29,8 +29,9 @@ def send_web_push_notification(subscription_info: dict, title: str, body: str) -
     if onesignal_app_id and onesignal_key:
         import requests
         url = "https://onesignal.com/api/v1/notifications"
+        auth_header = f"Key {onesignal_key}" if onesignal_key.startswith("os_v2_") else f"Basic {onesignal_key}"
         headers = {
-            "Authorization": f"Basic {onesignal_key}",
+            "Authorization": auth_header,
             "Content-Type": "application/json",
         }
         payload_data = {
