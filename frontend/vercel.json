@@ -3,6 +3,7 @@
   "cleanUrls": true,
   "routes": [
     { "src": "/sw.js", "dest": "/sw.js", "headers": { "Service-Worker-Allowed": "/" } },
+    { "src": "/api/(.*)", "dest": "https://notificationmanagementsystem.onrender.com/api/$1" },
     { "src": "/(.*)", "dest": "/$1" }
   ]
 }
