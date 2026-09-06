@@ -186,7 +186,7 @@ def test_send_template_view(request, template_id):
         'channel': template.channel,
         'trigger': template.trigger.name,
         'message': message,
-    }, status=status.HTTP_200_OK if success else status.HTTP_500_INTERNAL_SERVER_ERROR)
+    }, status=status.HTTP_200_OK if success else status.HTTP_400_BAD_REQUEST)
 
 
 # ==============================================================================

@@ -18,8 +18,10 @@ def send_whatsapp_message(to_number: str, message_body: str) -> tuple[bool, str]
         logger.info("[WhatsApp Sandbox Simulation] Message to %s: %s", recipient or 'Sandbox Default', message_body)
         return True, f"Simulated delivery (Meta WhatsApp Cloud API credentials not configured in .env). Recipient: {recipient or 'N/A'}"
 
-    # Clean phone number (strip '+' or whitespace)
-    clean_phone = recipient.replace('+', '').replace(' ', '').replace('-', '')
+    # Clean phone number (strip '+', '-', whitespace) and ensure country code
+    clean_phone = recipient.replace('+', '').replace(' ', '').replace('-', '').strip()
+    if len(clean_phone) == 10:
+        clean_phone = '91' + clean_phone
     url = f"https://graph.facebook.com/v18.0/{phone_number_id}/messages"
     headers = {
         "Authorization": f"Bearer {access_token}",
