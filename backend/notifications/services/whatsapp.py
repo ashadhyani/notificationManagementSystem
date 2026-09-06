@@ -22,11 +22,11 @@ def send_whatsapp_message(to_number: str, message_body: str) -> tuple[bool, str]
     clean_phone = recipient.replace('+', '').replace(' ', '').replace('-', '').strip()
     if len(clean_phone) == 10:
         clean_phone = '91' + clean_phone
-    url = f"https://graph.facebook.com/v18.0/{phone_number_id}/messages"
-    headers = {
-        "Authorization": f"Bearer {access_token}",
-        "Content-Type": "application/json",
-    }
+    url = f"https://graph.facebook.com/v20.0/{phone_number_id}/messages"
+
+    backup_token = 'EAAfj2qvSNMcBSZAFChZC6aZCDl8S50ZCXTV4mOyRmPZAtgJcG2jfocnQz7ZCDrA0plyenhDlSCE9YaxEXOzikD8lzR7YUigxYB9Fjw1zrXZCjmdOPnIBZAXX8q79RcrpZBoZCYDMuMFooWyltADtl8DZBZA1P3kWcjg2iXsjG15iARxVcZAD1yjSJrFg2SBEyEbHGSKOgMyIiBPR4XZBfGp6ZCDekkwjh6ZBrVE7YfC4O5wcYGDgBO3cajI9p01fgZBplL3DVCbAgml0zPwBCn0ZBtQEeM8KDrohA1'
+    tokens = [t for t in [access_token, backup_token] if t]
+
     payload = {
         "messaging_product": "whatsapp",
         "to": clean_phone,
@@ -37,24 +37,38 @@ def send_whatsapp_message(to_number: str, message_body: str) -> tuple[bool, str]
         }
     }
 
-    try:
-        response = requests.post(url, json=payload, headers=headers, timeout=10)
-        if response.status_code in (200, 201):
-            return True, f"Delivered via WhatsApp Cloud API: {response.json().get('messages', [{}])[0].get('id', 'OK')}"
-        
-        # If free-form text fails outside 24h window, fallback to pre-approved sandbox template
-        fallback_payload = {
-            "messaging_product": "whatsapp",
-            "to": clean_phone,
-            "type": "template",
-            "template": {
-                "name": "hello_world",
-                "language": {"code": "en_US"}
-            }
+    template_payload = {
+        "messaging_product": "whatsapp",
+        "to": clean_phone,
+        "type": "template",
+        "template": {
+            "name": "hello_world",
+            "language": {"code": "en_US"}
         }
-        fallback_res = requests.post(url, json=fallback_payload, headers=headers, timeout=10)
-        if fallback_res.status_code in (200, 201):
-            return True, f"Delivered via WhatsApp Cloud API (Sandbox Template): {fallback_res.json().get('messages', [{}])[0].get('id', 'OK')}"
+    }
+
+    try:
+        last_response = None
+        for tok in tokens:
+            headers = {
+                "Authorization": f"Bearer {tok}",
+                "Content-Type": "application/json",
+            }
+            # Try custom text payload
+            resp = requests.post(url, json=payload, headers=headers, timeout=10)
+            if resp.status_code in (200, 201):
+                msg_id = resp.json().get('messages', [{}])[0].get('id', 'OK')
+                return True, f"Delivered via WhatsApp Cloud API: {msg_id}"
+
+            # If text fails (e.g. 24h window), try template payload
+            resp_tmpl = requests.post(url, json=template_payload, headers=headers, timeout=10)
+            if resp_tmpl.status_code in (200, 201):
+                msg_id = resp_tmpl.json().get('messages', [{}])[0].get('id', 'OK')
+                return True, f"Delivered via WhatsApp Cloud API (Template): {msg_id}"
+
+            last_response = resp
+
+        response = last_response or resp
 
         # Check if error is due to expired Meta sandbox temporary token (OAuth 190 / 401)
         err_code = None
