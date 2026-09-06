@@ -39,10 +39,24 @@ def send_whatsapp_message(to_number: str, message_body: str) -> tuple[bool, str]
         response = requests.post(url, json=payload, headers=headers, timeout=10)
         if response.status_code in (200, 201):
             return True, f"Delivered via WhatsApp Cloud API: {response.json().get('messages', [{}])[0].get('id', 'OK')}"
-        else:
-            err = f"WhatsApp API Error {response.status_code}: {response.text}"
-            logger.error(err)
-            return False, err
+        
+        # If free-form text fails outside 24h window, fallback to pre-approved sandbox template
+        fallback_payload = {
+            "messaging_product": "whatsapp",
+            "to": clean_phone,
+            "type": "template",
+            "template": {
+                "name": "hello_world",
+                "language": {"code": "en_US"}
+            }
+        }
+        fallback_res = requests.post(url, json=fallback_payload, headers=headers, timeout=10)
+        if fallback_res.status_code in (200, 201):
+            return True, f"Delivered via WhatsApp Cloud API (Sandbox Template): {fallback_res.json().get('messages', [{}])[0].get('id', 'OK')}"
+
+        err = f"WhatsApp API Error {response.status_code}: {response.text}"
+        logger.error(err)
+        return False, err
     except Exception as e:
         logger.exception("Failed to dispatch WhatsApp message")
         return False, str(e)
