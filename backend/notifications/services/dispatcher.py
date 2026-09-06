@@ -30,8 +30,18 @@ def dispatch_notifications(trigger_code: str, user=None, recipient_email: str = 
 
     # Prepare context dictionary for dynamic variables
     user_name = user.username if user else 'Guest'
-    email = recipient_email or (user.email if user and user.email else 'user@example.com')
-    phone = recipient_phone or getattr(user, 'phone_number', None) or ''
+    fallback_email = getattr(settings, 'EMAIL_TEST_RECIPIENT', '').strip()
+    if recipient_email and recipient_email not in ('admin@notifications.com', 'user@example.com'):
+        email = recipient_email
+    elif user and user.email and user.email not in ('admin@notifications.com', 'user@example.com'):
+        email = user.email
+    elif fallback_email:
+        email = fallback_email
+    else:
+        email = recipient_email or (user.email if user and user.email else 'admin@notifications.com')
+
+    fallback_phone = getattr(settings, 'WHATSAPP_TEST_RECIPIENT', '').strip()
+    phone = recipient_phone or getattr(user, 'phone_number', None) or fallback_phone or ''
     current_time = timezone.now().strftime("%Y-%m-%d %H:%M:%S UTC")
 
     context = {
@@ -137,7 +147,8 @@ def send_single_test_notification(template: NotificationTemplate, test_recipient
         if channel == 'whatsapp':
             success, message = send_whatsapp_message(to_number=test_recipient, message_body=body)
         elif channel == 'email':
-            recipient = test_recipient or 'admin@notifications.com'
+            fallback_mail = getattr(settings, 'EMAIL_TEST_RECIPIENT', '').strip()
+            recipient = test_recipient or fallback_mail or 'admin@notifications.com'
             target_recipient = recipient
             success, message = send_transactional_email(to_email=recipient, subject=subject, body=body)
         elif channel == 'web_push':
