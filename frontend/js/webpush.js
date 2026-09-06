@@ -1,4 +1,5 @@
 import { api } from './api.js';
+import { showToast } from './modals.js';
 
 function urlBase64ToUint8Array(base64String) {
     const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
@@ -35,7 +36,9 @@ export async function initWebPush(onStatusChange) {
         if (existingSub && Notification.permission === 'granted') {
             markSubscribed(btn);
             if (onStatusChange) onStatusChange(true);
-            return;
+        } else {
+            markUnsubscribed(btn);
+            if (onStatusChange) onStatusChange(false);
         }
     } catch (err) {
         console.error('Service Worker registration error:', err);
@@ -43,18 +46,30 @@ export async function initWebPush(onStatusChange) {
 
     btn.addEventListener('click', async () => {
         try {
+            const registration = await navigator.serviceWorker.ready;
+            const existingSub = await registration.pushManager.getSubscription();
+
+            // 1. If already active, click will DISABLE / Unsubscribe!
+            if (existingSub) {
+                btn.textContent = '⏳ Disabling...';
+                await existingSub.unsubscribe();
+                markUnsubscribed(btn);
+                if (onStatusChange) onStatusChange(false);
+                showToast('🔕 Web Push disabled for this browser.');
+                return;
+            }
+
+            // 2. If disabled, click will ENABLE / Subscribe!
             btn.textContent = '⏳ Enabling Push...';
-            btn.disabled = true;
 
             const permission = await Notification.requestPermission();
             if (permission !== 'granted') {
                 btn.textContent = '⚠️ Push Permission Denied';
                 btn.disabled = false;
-                alert('Please allow notification permissions in your browser to receive push notifications.');
+                alert('Please allow notification permissions in your browser settings to receive push notifications.');
                 return;
             }
 
-            const registration = await navigator.serviceWorker.ready;
             const vapidData = await api.getVapidPublicKey();
             const vapidKey = vapidData.vapid_public_key;
 
@@ -74,6 +89,7 @@ export async function initWebPush(onStatusChange) {
 
             markSubscribed(btn);
             if (onStatusChange) onStatusChange(true);
+            showToast('🔔 Web Push enabled successfully!');
 
             // Trigger a welcoming browser notification
             if (Notification.permission === 'granted') {
@@ -83,16 +99,25 @@ export async function initWebPush(onStatusChange) {
                 });
             }
         } catch (err) {
-            console.error('Failed to subscribe Web Push:', err);
-            btn.textContent = '🔔 Enable Web Push';
-            btn.disabled = false;
-            alert('Failed to register browser push subscription: ' + err.message);
+            console.error('Failed to toggle Web Push:', err);
+            markUnsubscribed(btn);
+            alert('Failed to update browser push subscription: ' + err.message);
         }
     });
 }
 
 function markSubscribed(btn) {
     btn.textContent = '✅ Web Push Active';
+    btn.title = 'Click to disable browser push notifications';
     btn.classList.add('subscribed');
-    btn.disabled = true;
+    btn.disabled = false;
+    btn.style.cursor = 'pointer';
+}
+
+function markUnsubscribed(btn) {
+    btn.textContent = '🔔 Enable Web Push';
+    btn.title = 'Click to enable browser push notifications';
+    btn.classList.remove('subscribed');
+    btn.disabled = false;
+    btn.style.cursor = 'pointer';
 }
